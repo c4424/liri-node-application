@@ -1,3 +1,5 @@
+const axios = require('axios')
+
 // Function to print basic usage instructions to console.
 function showUsage(){
 	console.log("Usage: node liri.js [concert-this <artist/band name here>|spotify-this-song '<song name here>'|liri.js movie-this '<movie name here>'|liri.js do-what-it-says]");
@@ -13,10 +15,34 @@ if (process.argv.length < 3){
 // Slice off only the arguments we're interested in.
 var args = process.argv.slice(2);
 
-// Switch statement to execute different code depending on LIRI command.
 switch (args[0]) {
 	case 'concert-this':
-		console.log('I would check Bandsintown if I could.');
+		if(args.length > 1){
+			var url = "https://rest.bandsintown.com/artists/" + args[1] + "/events?app_id=codingbootcamp"
+			axios.get(url)
+			.then(function (response) {
+				if (response.data.length == 0)
+					console.log("No results found. =(");
+				else
+					console.log("Upcoming concerts:\n")
+					for( var i = 0; i < response.data.length; i++ ){
+						console.log("Date: " + response.data[i].datetime);
+						console.log("Venue: " + response.data[i].venue.name);
+						var location = "Location: " + response.data[i].venue.city + 
+						(response.data[i].venue.region ? "" : (", " + response.data[i].venue.region)) + 
+						", " + response.data[i].venue.country + "\n";
+						console.log(location);
+					}
+			})
+			.catch(function (error) {
+				console.log(error);
+			})
+			.then(function () {
+				// always executed
+			});
+		}
+		else
+			console.log("concert-this Usage: node liri.js concert-this <artist/band name here>")
 		break;
 	case 'spotify-this-song':
 		console.log('I would check Spotify if I could.');
@@ -28,5 +54,7 @@ switch (args[0]) {
 		console.log('I would do what it says if I could.');
 		break;
 	default:
+		// LIRI command not recognized
 		showUsage();
 		process.exit(1);
+}
